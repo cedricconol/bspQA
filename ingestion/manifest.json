@@ -1,61 +1,182 @@
 {
-    "metadata": {
-      "last_updated": "2025-04-12",
-      "total_documents": 0,
-      "series": ["monetary_policy_report"],
-      "maintainer": "cedricconol"
-    },
-    "documents": [
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_1.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_2.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_3.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_4.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_1.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_2.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_3.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_4.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_February2024.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_May2024.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_August2024.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_December2024.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_February2025.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_June2025.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_August2025.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_December2025.pdf"
-      },
-      {
-        "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport-February2026.pdf"
-      }
+  "metadata": {
+    "maintainer": "cedricconol",
+    "last_updated": "2026-04-12",
+    "total_documents": 17,
+    "series": [
+      "monetary_policy_report"
     ]
-  }
+  },
+  "documents": [
+    {
+      "doc_id": "bsp-mpr-2022-q1",
+      "title": "Monetary Policy Report Q1 2022",
+      "series": "monetary_policy_report",
+      "period_label": "Q1 2022",
+      "publication_date": "2022-02-17",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_1.pdf",
+      "pages": 70,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2022-q2",
+      "title": "Monetary Policy Report Q2 2022",
+      "series": "monetary_policy_report",
+      "period_label": "Q2 2022",
+      "publication_date": "null",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_2.pdf",
+      "pages": 60,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2022-q3",
+      "title": "Monetary Policy Report Q3 2022",
+      "series": "monetary_policy_report",
+      "period_label": "Q3 2022",
+      "publication_date": "2022-08-18",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_3.pdf",
+      "pages": 53,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2022-q4",
+      "title": "Monetary Policy Report Q4 2022",
+      "series": "monetary_policy_report",
+      "period_label": "Q4 2022",
+      "publication_date": "2022-11-17",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2022_4.pdf",
+      "pages": 59,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2023-q1",
+      "title": "Monetary Policy Report Q1 2023",
+      "series": "monetary_policy_report",
+      "period_label": "Q1 2023",
+      "publication_date": "2023-02-16",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_1.pdf",
+      "pages": 57,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2023-q2",
+      "title": "Monetary Policy Report Q2 2023",
+      "series": "monetary_policy_report",
+      "period_label": "Q2 2023",
+      "publication_date": "null",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_2.pdf",
+      "pages": 59,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2023-q3",
+      "title": "Monetary Policy Report Q3 2023",
+      "series": "monetary_policy_report",
+      "period_label": "Q3 2023",
+      "publication_date": "null",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_3.pdf",
+      "pages": 54,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2023-q4",
+      "title": "Monetary Policy Report Q4 2023",
+      "series": "monetary_policy_report",
+      "period_label": "Q4 2023",
+      "publication_date": "null",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_2023_4.pdf",
+      "pages": 55,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2024-february",
+      "title": "Monetary Policy Report February 2024",
+      "series": "monetary_policy_report",
+      "period_label": "February 2024",
+      "publication_date": "2024-02-14",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_February2024.pdf",
+      "pages": 51,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2024-may",
+      "title": "Monetary Policy Report May 2024",
+      "series": "monetary_policy_report",
+      "period_label": "May 2024",
+      "publication_date": "2024-05-16",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_May2024.pdf",
+      "pages": 52,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2024-august",
+      "title": "Monetary Policy Report August 2024",
+      "series": "monetary_policy_report",
+      "period_label": "August 2024",
+      "publication_date": "2024-08-29",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_August2024.pdf",
+      "pages": 56,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2024-december",
+      "title": "Monetary Policy Report December 2024",
+      "series": "monetary_policy_report",
+      "period_label": "December 2024",
+      "publication_date": "2024-12-19",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_December2024.pdf",
+      "pages": 55,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2025-february",
+      "title": "Monetary Policy Report February 2025",
+      "series": "monetary_policy_report",
+      "period_label": "February 2025",
+      "publication_date": "2025-02-13",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_February2025.pdf",
+      "pages": 47,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2025-june",
+      "title": "Monetary Policy Report June 2025",
+      "series": "monetary_policy_report",
+      "period_label": "June 2025",
+      "publication_date": "2025-07-03",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_June2025.pdf",
+      "pages": 51,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2025-august",
+      "title": "Monetary Policy Report August 2025",
+      "series": "monetary_policy_report",
+      "period_label": "August 2025",
+      "publication_date": "null",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_August2025.pdf",
+      "pages": 50,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2025-december",
+      "title": "Monetary Policy Report December 2025",
+      "series": "monetary_policy_report",
+      "period_label": "December 2025",
+      "publication_date": "2025-12-11",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport_December2025.pdf",
+      "pages": 46,
+      "ingested": false
+    },
+    {
+      "doc_id": "bsp-mpr-2026-february",
+      "title": "Monetary Policy Report February 2026",
+      "series": "monetary_policy_report",
+      "period_label": "February 2026",
+      "publication_date": "2026-02-19",
+      "url": "https://www.bsp.gov.ph/Price%20Stability/MonetaryPolicyReport/FullReport-February2026.pdf",
+      "pages": 55,
+      "ingested": false
+    }
+  ]
+}
