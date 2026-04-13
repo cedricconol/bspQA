@@ -8,4 +8,17 @@ dependencies = [
     "fitz>=0.0.1.dev2",
     "ipykernel>=7.2.0",
     "markitdown[az-doc-intel,pdf]>=0.1.5",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "qdrant-client>=1.17.1",
+    "tiktoken>=0.7.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
