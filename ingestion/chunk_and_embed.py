@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import uuid
 from pathlib import Path
@@ -45,6 +46,10 @@ def _embeddings_dir() -> Path:
     return _ingestion_root() / "data" / "embeddings"
 
 
+def _manifest_path() -> Path:
+    return _ingestion_root() / "manifest.json"
+
+
 def _load_dotenv_files() -> None:
     load_dotenv(_repo_root() / ".env")
     load_dotenv(_ingestion_root() / ".env")
@@ -71,6 +76,53 @@ def _qdrant_client() -> QdrantClient:
 
 def _qdrant_collection_name() -> str:
     return _require_env("QDRANT_COLLECTION_NAME")
+
+
+def _normalize_period_label(period_label: str | None) -> str | None:
+    if not period_label:
+        return None
+    normalized = re.sub(r"[^a-z0-9]+", "_", period_label.strip().lower()).strip("_")
+    return normalized or None
+
+
+def _normalize_publication_date(publication_date: str | None) -> str | None:
+    if not publication_date:
+        return None
+    candidate = publication_date.strip()
+    if not candidate or candidate.lower() == "null":
+        return None
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", candidate):
+        return candidate
+    return None
+
+
+def _manifest_doc_metadata_by_source_file() -> dict[str, dict[str, str | None]]:
+    """
+    Build a lookup keyed by parsed txt filename (e.g. `FullReport_2022_1.txt`).
+    """
+    path = _manifest_path()
+    if not path.is_file():
+        return {}
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    documents = data.get("documents", [])
+    by_source_file: dict[str, dict[str, str | None]] = {}
+
+    for doc in documents:
+        if not isinstance(doc, dict):
+            continue
+        url = doc.get("url")
+        if not isinstance(url, str):
+            continue
+        pdf_name = Path(url).name
+        source_file = f"{Path(pdf_name).stem}.txt"
+        by_source_file[source_file] = {
+            "period_label": doc.get("period_label"),
+            "period_label_key": _normalize_period_label(doc.get("period_label")),
+            "publication_date": _normalize_publication_date(doc.get("publication_date")),
+        }
+
+    return by_source_file
 
 
 def _is_production_environment() -> bool:
@@ -111,16 +163,31 @@ def _should_recreate_qdrant_collection() -> bool:
 
 
 def _ensure_source_file_keyword_index(client: QdrantClient, collection: str) -> None:
-    """Qdrant requires a keyword index to filter/delete by payload `source_file`."""
+    """Create payload indexes used by retrieval/deletes."""
     info = client.get_collection(collection_name=collection)
-    if info.payload_schema and "source_file" in info.payload_schema:
-        return
-    client.create_payload_index(
-        collection_name=collection,
-        field_name="source_file",
-        field_schema=models.PayloadSchemaType.KEYWORD,
-        wait=True,
-    )
+    schema = info.payload_schema or {}
+
+    if "source_file" not in schema:
+        client.create_payload_index(
+            collection_name=collection,
+            field_name="source_file",
+            field_schema=models.PayloadSchemaType.KEYWORD,
+            wait=True,
+        )
+    if "period_label_key" not in schema:
+        client.create_payload_index(
+            collection_name=collection,
+            field_name="period_label_key",
+            field_schema=models.PayloadSchemaType.KEYWORD,
+            wait=True,
+        )
+    if "publication_date" not in schema:
+        client.create_payload_index(
+            collection_name=collection,
+            field_name="publication_date",
+            field_schema=models.PayloadSchemaType.DATETIME,
+            wait=True,
+        )
 
 
 def _ensure_collection(
@@ -257,9 +324,11 @@ def main() -> int:
     )
 
     total_upserted = 0
+    manifest_by_source_file = _manifest_doc_metadata_by_source_file()
 
     for path in txt_files:
         _delete_chunks_for_source(qdrant, collection, path.name)
+        doc_meta = manifest_by_source_file.get(path.name, {})
 
         raw = path.read_text(encoding="utf-8")
         chunks = chunk_text_by_tokens(
@@ -298,6 +367,9 @@ def main() -> int:
                             "chunk_index": idx,
                             "text": chunk_text,
                             "embedding_model": EMBEDDING_MODEL,
+                            "period_label": doc_meta.get("period_label"),
+                            "period_label_key": doc_meta.get("period_label_key"),
+                            "publication_date": doc_meta.get("publication_date"),
                         },
                     )
                 )
