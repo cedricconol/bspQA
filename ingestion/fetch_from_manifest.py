@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
-import sys
+import logging
 import urllib.error
 import urllib.request
 from pathlib import Path
 from urllib.parse import unquote, urlparse
+
+logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 64 * 1024
 TIMEOUT_S = 120
@@ -40,9 +42,11 @@ def _download(url: str, dest: Path) -> None:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
     mpath = _manifest_path()
     if not mpath.is_file():
-        print(f"Manifest not found: {mpath}", file=sys.stderr)
+        logger.error("Manifest not found: %s", mpath)
         return 1
 
     out = _output_dir()
@@ -53,35 +57,35 @@ def main() -> int:
 
     documents = data.get("documents", [])
     if not documents:
-        print("No documents in manifest.", file=sys.stderr)
+        logger.error("No documents in manifest.")
         return 1
 
     errors = 0
     for item in documents:
         url = item.get("url")
         if not url:
-            print(f"Skipping entry without url: {item!r}", file=sys.stderr)
+            logger.warning("Skipping entry without url: %r", item)
             errors += 1
             continue
 
         dest = out / _filename_for_url(url)
         if dest.exists():
-            print(f"Skip (exists): {dest.name}")
+            logger.info("Skip (exists): %s", dest.name)
             continue
 
         try:
-            print(f"Downloading: {url}")
+            logger.info("Downloading: %s", url)
             _download(url, dest)
-            print(f"  -> {dest}")
+            logger.info("  -> %s", dest)
         except urllib.error.HTTPError as e:
-            print(f"HTTP {e.code} for {url}: {e.reason}", file=sys.stderr)
+            logger.error("HTTP %s for %s: %s", e.code, url, e.reason)
             errors += 1
         except urllib.error.URLError as e:
             reason = e.reason if isinstance(e.reason, str) else repr(e.reason)
-            print(f"URL error for {url}: {reason}", file=sys.stderr)
+            logger.error("URL error for %s: %s", url, reason)
             errors += 1
         except OSError as e:
-            print(f"IO error for {url}: {e}", file=sys.stderr)
+            logger.error("IO error for %s: %s", url, e)
             errors += 1
 
     return 1 if errors else 0

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import Optional
 
 from app.rag.pipeline import run_rag_pipeline, DEFAULT_GENERATION_MODEL
 from app.rag.retriever import DEFAULT_SCORE_THRESHOLD, DEFAULT_TOP_K
@@ -12,10 +13,10 @@ class QueryRequest(BaseModel):
     query: str
     top_k: int = Field(DEFAULT_TOP_K)
     score_threshold: float = Field(DEFAULT_SCORE_THRESHOLD)
-    period_label_key: Optional[str] = None
-    publication_date: Optional[str] = None
-    publication_date_from: Optional[str] = None
-    publication_date_to: Optional[str] = None
+    period_label_key: str | None = None
+    publication_date: str | None = None
+    publication_date_from: str | None = None
+    publication_date_to: str | None = None
     model: str = Field(DEFAULT_GENERATION_MODEL)
 
 
@@ -25,7 +26,18 @@ class QueryResponse(BaseModel):
 
 
 @router.post("/query", response_model=QueryResponse)
-def query(request: QueryRequest):
+def query(request: QueryRequest) -> QueryResponse:
+    """Execute the RAG pipeline for a user question.
+
+    Args:
+        request: The query parameters including the question and optional filters.
+
+    Returns:
+        A QueryResponse with the grounded answer and cited sources.
+
+    Raises:
+        HTTPException: 500 if the pipeline raises an unexpected error.
+    """
     try:
         result = run_rag_pipeline(
             query=request.query,
@@ -39,4 +51,4 @@ def query(request: QueryRequest):
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
