@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-import sys
+import logging
 from pathlib import Path
 
 from markitdown import MarkItDown
+
+logger = logging.getLogger(__name__)
 
 
 def _raw_dir() -> Path:
@@ -17,14 +19,16 @@ def _parsed_dir() -> Path:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
     raw = _raw_dir()
     if not raw.is_dir():
-        print(f"Raw directory not found: {raw}", file=sys.stderr)
+        logger.error("Raw directory not found: %s", raw)
         return 1
 
     pdfs = sorted(raw.glob("*.pdf"))
     if not pdfs:
-        print(f"No PDF files in {raw}", file=sys.stderr)
+        logger.error("No PDF files in %s", raw)
         return 1
 
     out = _parsed_dir()
@@ -35,18 +39,18 @@ def main() -> int:
     for pdf in pdfs:
         dest = out / f"{pdf.stem}.txt"
         try:
-            print(f"Parsing: {pdf.name}")
+            logger.info("Parsing: %s", pdf.name)
             result = converter.convert(pdf)
             text = (result.text_content or "").strip()
             if not text:
                 text = (result.markdown or "").strip()
             dest.write_text(text + ("\n" if text else ""), encoding="utf-8")
-            print(f"  -> {dest.name}")
+            logger.info("  -> %s", dest.name)
         except OSError as e:
-            print(f"IO error for {pdf.name}: {e}", file=sys.stderr)
+            logger.error("IO error for %s: %s", pdf.name, e)
             errors += 1
         except Exception as e:
-            print(f"Failed to convert {pdf.name}: {e}", file=sys.stderr)
+            logger.error("Failed to convert %s: %s", pdf.name, e)
             errors += 1
 
     return 1 if errors else 0

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from .generator import (
     DEFAULT_GENERATION_MODEL,
@@ -18,17 +18,28 @@ def run_rag_pipeline(
     *,
     top_k: int = DEFAULT_TOP_K,
     score_threshold: float = DEFAULT_SCORE_THRESHOLD,
-    period_label_key: Optional[str] = None,
-    publication_date: Optional[str] = None,
-    publication_date_from: Optional[str] = None,
-    publication_date_to: Optional[str] = None,
+    period_label_key: str | None = None,
+    publication_date: str | None = None,
+    publication_date_from: str | None = None,
+    publication_date_to: str | None = None,
     model: str = DEFAULT_GENERATION_MODEL,
-    openai_client: Optional[Any] = None,
+    openai_client: Any | None = None,
 ) -> dict[str, Any]:
-    """
-    Retrieve relevant chunks and generate a grounded answer in one call.
+    """Retrieve relevant chunks and generate a grounded answer in one call.
 
-    Returns a structured payload intended for API responses.
+    Args:
+        query: The natural language question to answer.
+        top_k: Maximum number of chunks to retrieve.
+        score_threshold: Minimum similarity score to include a chunk.
+        period_label_key: Optional normalized period slug to filter by.
+        publication_date: Exact ISO 8601 date to filter by.
+        publication_date_from: Start of an ISO 8601 date range (inclusive).
+        publication_date_to: End of an ISO 8601 date range (inclusive).
+        model: OpenAI model name to use for generation.
+        openai_client: Optional pre-built OpenAI client.
+
+    Returns:
+        A dict with "answer" (str) and "sources" (list) for use in API responses.
     """
     hits = retrieve_chunks(
         query=query,

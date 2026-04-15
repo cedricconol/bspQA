@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import sys
@@ -13,6 +14,8 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
 from qdrant_client import QdrantClient, models
+
+logger = logging.getLogger(__name__)
 
 # RAG / chunking defaults (token counts use the embedding model tokenizer)
 CHUNK_SIZE_TOKENS = 512
@@ -59,7 +62,7 @@ def _load_dotenv_files() -> None:
 def _require_env(name: str) -> str:
     v = os.environ.get(name)
     if not v:
-        print(f"Missing required environment variable: {name}", file=sys.stderr)
+        logger.error("Missing required environment variable: %s", name)
         raise SystemExit(1)
     return v
 
@@ -97,8 +100,11 @@ def _normalize_publication_date(publication_date: str | None) -> str | None:
 
 
 def _manifest_doc_metadata_by_source_file() -> dict[str, dict[str, str | None]]:
-    """
-    Build a lookup keyed by parsed txt filename (e.g. `FullReport_2022_1.txt`).
+    """Build a lookup keyed by parsed txt filename (e.g. ``FullReport_2022_1.txt``).
+
+    Returns:
+        A dict mapping source filenames to their period_label, period_label_key,
+        and publication_date metadata from manifest.json.
     """
     path = _manifest_path()
     if not path.is_file():
@@ -126,7 +132,7 @@ def _manifest_doc_metadata_by_source_file() -> dict[str, dict[str, str | None]]:
 
 
 def _is_production_environment() -> bool:
-    """True when running in a production-like deploy (e.g. Railway production)."""
+    """Return True when running in a production-like deploy (e.g. Railway production)."""
     railway = (os.environ.get("RAILWAY_ENVIRONMENT") or "").strip().lower()
     if railway == "production":
         return True
@@ -139,11 +145,14 @@ def _is_production_environment() -> bool:
 
 
 def _should_recreate_qdrant_collection() -> bool:
-    """
-    Drop and recreate the Qdrant collection before ingest.
+    """Return whether the Qdrant collection should be dropped and recreated before ingest.
 
-    Disabled in production. In non-production, enabled when ENVIRONMENT/APP_ENV
-    looks like local dev, or when QDRANT_RECREATE_COLLECTION is explicitly true.
+    Always returns False in production. In non-production environments, returns True
+    when ENVIRONMENT/APP_ENV looks like local dev, or when QDRANT_RECREATE_COLLECTION
+    is explicitly set to a truthy value.
+
+    Returns:
+        True if the collection should be recreated, False otherwise.
     """
     if _is_production_environment():
         return False
@@ -163,7 +172,7 @@ def _should_recreate_qdrant_collection() -> bool:
 
 
 def _ensure_source_file_keyword_index(client: QdrantClient, collection: str) -> None:
-    """Create payload indexes used by retrieval/deletes."""
+    """Create payload indexes used by retrieval and deletes."""
     info = client.get_collection(collection_name=collection)
     schema = info.payload_schema or {}
 
@@ -191,7 +200,10 @@ def _ensure_source_file_keyword_index(client: QdrantClient, collection: str) -> 
 
 
 def _ensure_collection(
-    client: QdrantClient, name: str, *, recreate: bool = False
+    client: QdrantClient,
+    name: str,
+    *,
+    recreate: bool = False,
 ) -> None:
     if recreate and client.collection_exists(name):
         client.delete_collection(collection_name=name)
@@ -207,7 +219,9 @@ def _ensure_collection(
 
 
 def _delete_chunks_for_source(
-    client: QdrantClient, collection: str, source_file: str
+    client: QdrantClient,
+    collection: str,
+    source_file: str,
 ) -> None:
     client.delete(
         collection_name=collection,
@@ -233,7 +247,20 @@ def chunk_text_by_tokens(
     chunk_size: int = CHUNK_SIZE_TOKENS,
     overlap: int = OVERLAP_TOKENS,
 ) -> list[str]:
-    """Split text into overlapping token windows; returns UTF-8 text chunks."""
+    """Split text into overlapping token windows.
+
+    Args:
+        text: The raw text to chunk.
+        enc: A tiktoken Encoding instance.
+        chunk_size: Maximum number of tokens per chunk.
+        overlap: Number of tokens shared between adjacent chunks.
+
+    Returns:
+        A list of UTF-8 decoded text chunks.
+
+    Raises:
+        ValueError: If overlap is >= chunk_size.
+    """
     text = text.strip()
     if not text:
         return []
@@ -277,16 +304,17 @@ def _point_id(source_file: str, chunk_index: int) -> str:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     _load_dotenv_files()
 
     parsed = _parsed_dir()
     if not parsed.is_dir():
-        print(f"Parsed directory not found: {parsed}", file=sys.stderr)
+        logger.error("Parsed directory not found: %s", parsed)
         return 1
 
     txt_files = sorted(parsed.glob("*.txt"))
     if not txt_files:
-        print(f"No .txt files in {parsed}", file=sys.stderr)
+        logger.error("No .txt files in %s", parsed)
         return 1
 
     enc = tiktoken.get_encoding(ENCODING_NAME)
@@ -295,10 +323,9 @@ def main() -> int:
     collection = _qdrant_collection_name()
     recreate = _should_recreate_qdrant_collection()
     if recreate:
-        print(
-            "Qdrant collection will be recreated (dev / explicit flag); "
-            f"wipe+create {collection!r}",
-            file=sys.stderr,
+        logger.warning(
+            "Qdrant collection will be recreated (dev / explicit flag); wipe+create %r",
+            collection,
         )
     _ensure_collection(qdrant, collection, recreate=recreate)
 
@@ -337,7 +364,7 @@ def main() -> int:
             chunk_size=CHUNK_SIZE_TOKENS,
             overlap=OVERLAP_TOKENS,
         )
-        print(f"{path.name}: {len(chunks)} chunk(s)")
+        logger.info("%s: %d chunk(s)", path.name, len(chunks))
 
         pending_texts: list[str] = []
         pending_indices: list[int] = []
@@ -352,10 +379,10 @@ def main() -> int:
                 pending_indices, embeddings, pending_texts, strict=True
             ):
                 if len(emb) != EMBEDDING_DIM:
-                    print(
-                        f"Embedding length {len(emb)} != expected {EMBEDDING_DIM}; "
-                        "check model / Qdrant collection config.",
-                        file=sys.stderr,
+                    logger.error(
+                        "Embedding length %d != expected %d; check model / Qdrant collection config.",
+                        len(emb),
+                        EMBEDDING_DIM,
                     )
                     raise SystemExit(1)
                 points.append(
@@ -386,8 +413,8 @@ def main() -> int:
 
         flush_batch()
 
-    print(f"Upserted {total_upserted} point(s) into Qdrant collection {collection!r}")
-    print(f"Wrote params to {params_path}")
+    logger.info("Upserted %d point(s) into Qdrant collection %r", total_upserted, collection)
+    logger.info("Wrote params to %s", params_path)
     return 0
 
 
