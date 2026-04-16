@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: bspqa-api
+    runtime: python
+    buildCommand: pip install uv && uv sync --no-dev
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: QDRANT_CLUSTER_ENDPOINT
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION_NAME
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
