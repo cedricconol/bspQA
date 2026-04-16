@@ -128,7 +128,7 @@ def _recency_boosted_hits(hits: list[Any], top_k: int) -> list[Any]:
     Returns:
         Re-ranked and trimmed list of hits.
     """
-    if len(hits) <= top_k:
+    if not hits:
         return hits
 
     dated_hits: list[tuple[Any, date]] = []

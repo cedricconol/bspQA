@@ -22,6 +22,7 @@ Rules:
 - Do not speculate or infer beyond what the excerpts explicitly state.
 - Use clear, plain English; keep it concise.
 - If the question asks about a time period not covered by the Sources, say so explicitly.
+- When multiple sources address the same question, prefer the one with the most recent publication_date. Only cite an older source if the newer one does not contain the relevant information.
 
 Output format:
 - Answer: (your answer with inline citations like [Source 1])
@@ -44,14 +45,14 @@ def _build_context(hits: list[Any]) -> str:
         text = str(payload.get("text", "")).strip()
         source = payload.get("source_file", "unknown")
         chunk_index = payload.get("chunk_index", "unknown")
-        score = getattr(hit, "score", 0.0)
+        publication_date = payload.get("publication_date", "unknown")
         sections.append(
             "\n".join(
                 [
                     f"[Source {idx}]",
                     f"source_file: {source}",
+                    f"publication_date: {publication_date}",
                     f"chunk_index: {chunk_index}",
-                    f"score: {score:.4f}",
                     f"text: {text}",
                 ]
             )
