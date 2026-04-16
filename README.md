@@ -4,7 +4,7 @@ A RAG-powered Q&A system over official **Bangko Sentral ng Pilipinas (BSP)** Mon
 
 > Built as a portfolio project to learn and demonstrate end-to-end Retrieval-Augmented Generation (RAG) engineering, from ingestion pipeline to deployed web app.
 
-**Live demo:** [bspqa.onrender.com](https://bspqa.onrender.com) *(first query may take 30–60 s while the server wakes up on the free tier)*
+**Live demo:** [bsp-qa.vercel.app](https://bsp-qa.vercel.app/) *(first query may take 30–60 s while the server wakes up on the free tier)*
 
 ---
 
@@ -95,7 +95,7 @@ When a user asks a question, the question is also embedded into this same space.
                         │  3. BUILD CONTEXT: number the chunks,           │
                         │     attach metadata (source, date)              │
                         │                                                 │
-                        │  4. GENERATE: send question + context to LLM   │
+                        │  4. GENERATE: send question + context to LLM    │
                         │     with instructions to cite sources           │
                         │                                                 │
                         │  5. RETURN answer + structured source list      │
@@ -122,19 +122,19 @@ The LLM never accesses the document store directly. It only sees the numbered pa
 │  │   (run once / on update)    │        │       (runs on every query)      │ │
 │  │                             │        │                                  │ │
 │  │  BSP PDFs (17 reports)      │        │  User ──► Next.js frontend       │ │
-│  │       │                     │        │                │                  │ │
-│  │       ▼                     │        │                ▼                  │ │
-│  │  fetch_from_manifest.py     │        │  FastAPI  POST /query             │ │
-│  │       │                     │        │                │                  │ │
-│  │       ▼                     │        │                ▼                  │ │
-│  │  parse_pdfs.py              │        │  run_rag_pipeline()               │ │
-│  │  (MarkItDown → .txt)        │        │       │          │                │ │
-│  │       │                     │        │   RETRIEVE    GENERATE            │ │
-│  │       ▼                     │        │       │          │                │ │
+│  │       │                     │        │                │                 │ │
+│  │       ▼                     │        │                ▼                 │ │
+│  │  fetch_from_manifest.py     │        │  FastAPI  POST /query            │ │
+│  │       │                     │        │                │                 │ │
+│  │       ▼                     │        │                ▼                 │ │
+│  │  parse_pdfs.py              │        │  run_rag_pipeline()              │ │
+│  │  (MarkItDown → .txt)        │        │       │          │               │ │
+│  │       │                     │        │   RETRIEVE    GENERATE           │ │
+│  │       ▼                     │        │       │          │               │ │
 │  │  chunk_and_embed.py    ─────┼──────► │   Qdrant     OpenAI              │ │
-│  │  (tiktoken + OpenAI)        │        │   Cloud      GPT-4o-mini          │ │
-│  │       │                     │        │                │                  │ │
-│  │       ▼                     │        │                ▼                  │ │
+│  │  (tiktoken + OpenAI)        │        │   Cloud      GPT-4o-mini         │ │
+│  │       │                     │        │                │                 │ │
+│  │       ▼                     │        │                ▼                 │ │
 │  │   Qdrant Cloud  ◄───────────┘        │  Answer + sources ──► User       │ │
 │  │   (vector store)            │        │                                  │ │
 │  └─────────────────────────────┘        └──────────────────────────────────┘ │
@@ -177,14 +177,14 @@ Ingestion is a one-time (or on-update) offline process that builds the vector st
 │  │  │ CHUNK WINDOW  (512 tokens, 64-token overlap)         │   │  │
 │  │  │                                                      │   │  │
 │  │  │  [chunk 0][chunk 1][chunk 2] ...                     │   │  │
-│  │  │       ↕overlap↕       ↕overlap↕                     │   │  │
+│  │  │       ↕overlap↕       ↕overlap↕                      │   │  │
 │  │  └──────────────────────────────────────────────────────┘   │  │
 │  │                                                             │  │
 │  │  Chunks → OpenAI text-embedding-3-small → 1536-dim vectors  │  │
 │  │  (batches of 128 for throughput)                            │  │
 │  │                                                             │  │
 │  │  Upsert to Qdrant with payload:                             │  │
-│  │  { source_file, chunk_index, text, period_label,           │  │
+│  │  { source_file, chunk_index, text, period_label,            │  │
 │  │    period_label_key, publication_date, embedding_model }    │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 └───────────────────────────────────────────────────────────────────┘
@@ -212,7 +212,7 @@ Ingestion is a one-time (or on-update) offline process that builds the vector st
 │ FastAPI  POST /query                                              │
 │                                                                   │
 │  QueryRequest {                                                   │
-│    query, top_k=15, score_threshold=0.0,                         │
+│    query, top_k=15, score_threshold=0.0,                          │
 │    period_label_key?, publication_date?                           │
 │  }                                                                │
 └───────────────────────┬───────────────────────────────────────────┘
@@ -226,11 +226,11 @@ Ingestion is a one-time (or on-update) offline process that builds the vector st
 │  2. Build optional Qdrant filter                                  │
 │     └── period_label_key / publication_date range if specified    │
 │                                                                   │
-│  3. Query Qdrant (top_k × 3 = 45 candidates)                     │
+│  3. Query Qdrant (top_k × 3 = 45 candidates)                      │
 │     └── cosine similarity search                                  │
 │                                                                   │
 │  4. Recency re-ranking                                            │
-│     └── blended score = 0.15 × relevance + 0.85 × recency        │
+│     └── blended score = 0.15 × relevance + 0.85 × recency         │
 │         (newer reports are preferred when equally relevant)       │
 │     └── trim to top_k=15                                          │
 └───────────────────────┬───────────────────────────────────────────┘
@@ -260,17 +260,17 @@ Ingestion is a one-time (or on-update) offline process that builds the vector st
 │                                                                   │
 │  Input: question + numbered source blocks                         │
 │                                                                   │
-│  Output: "The BSP raised its policy rate to 6.50% in             │
+│  Output: "The BSP raised its policy rate to 6.50% in              │
 │           Q3 2024 [1], citing elevated inflation expectations..." │
 └───────────────────────┬───────────────────────────────────────────┘
                         │
                         ▼
 ┌───────────────────────────────────────────────────────────────────┐
 │ QueryResponse {                                                   │
-│   answer: "The BSP raised its policy rate to 6.50%...",          │
+│   answer: "The BSP raised its policy rate to 6.50%...",           │
 │   sources: [                                                      │
-│     { source_id: 1, title: "Monetary Policy Report Q3 2024",     │
-│       url: "https://bsp.gov.ph/...", score: 0.87 },              │
+│     { source_id: 1, title: "Monetary Policy Report Q3 2024",      │
+│       url: "https://bsp.gov.ph/...", score: 0.87 },               │
 │     ...                                                           │
 │   ]                                                               │
 │ }                                                                 │
