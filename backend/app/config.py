@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     qdrant_cluster_endpoint: str
     qdrant_api_key: str
     qdrant_collection_name: str
+    allowed_origins: str = "http://localhost:3000"
 
 
 @lru_cache
