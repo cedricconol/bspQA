@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "BSP Monetary Policy Q&A",
-  description: "Ask questions grounded in official BSP monetary policy and inflation reports.",
+  description: "Ask questions grounded in official BSP monetary policy reports.",
 };
 
 export default function RootLayout({
