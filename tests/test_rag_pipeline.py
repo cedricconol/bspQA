@@ -48,16 +48,17 @@ def test_run_rag_pipeline_generates_answer_from_retrieved_hits(monkeypatch) -> N
     )
 
     assert result["answer"] == "Answer: Inflation eased. [Source 1]"
-    assert result["sources"] == [
-        {
-            "source_id": 1,
-            "source_file": "FullReport_December2025.txt",
-            "chunk_index": 12,
-            "score": 0.9876,
-        }
-    ]
+    assert len(result["sources"]) == 1
+    src = result["sources"][0]
+    assert src["source_id"] == 1
+    assert src["source_file"] == "FullReport_December2025.txt"
+    assert src["chunk_index"] == 12
+    assert src["score"] == 0.9876
+    assert src["period_label"] == "December 2025"
+    assert src["title"] == "Monetary Policy Report December 2025"
+    assert "FullReport_December2025.pdf" in (src["url"] or "")
     assert len(calls) == 1
     assert calls[0]["model"] == pipeline.DEFAULT_GENERATION_MODEL
     assert calls[0]["instructions"] == pipeline.SYSTEM_PROMPT
     assert "Question:\nDid inflation ease?" in calls[0]["input"]
-    assert "[Source 1]" in calls[0]["input"]
+    assert "[1]" in calls[0]["input"]
