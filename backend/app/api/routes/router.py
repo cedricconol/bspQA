@@ -3,8 +3,8 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app.rag.pipeline import run_rag_pipeline, DEFAULT_GENERATION_MODEL
-from app.rag.retriever import DEFAULT_SCORE_THRESHOLD, DEFAULT_TOP_K
+from backend.app.rag.pipeline import run_rag_pipeline, DEFAULT_GENERATION_MODEL
+from backend.app.rag.retriever import DEFAULT_SCORE_THRESHOLD, DEFAULT_TOP_K
 
 router = APIRouter()
 

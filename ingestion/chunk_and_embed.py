@@ -237,6 +237,32 @@ def _delete_chunks_for_source(
     )
 
 
+def _clean_parsed_text(text: str) -> str:
+    """Normalize PDF-extracted text before chunking.
+
+    Removes PDF artifacts that pollute chunk embeddings:
+    - Form-feed characters (``\\x0c``) inserted at page boundaries
+    - BSP boilerplate page headers (``Classification: GENERAL`` /
+      ``Monetary Policy Report – <period> | <page>``)
+    - Collapses runs of more than two consecutive blank lines
+
+    Args:
+        text: Raw text from a parsed PDF .txt file.
+
+    Returns:
+        Cleaned text ready for token-based chunking.
+    """
+    # Page breaks → paragraph break
+    text = text.replace("\x0c", "\n\n")
+    # BSP page header: "Classification: GENERAL" line
+    text = re.sub(r"Classification:\s*GENERAL\s*\n", "", text)
+    # BSP page footer: "Monetary Policy Report – <period> | <N>"
+    text = re.sub(r"Monetary Policy Report\s*[–-][^\n]+\|\s*\d+\s*\n", "", text)
+    # Collapse 3+ blank lines to 2
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def _encode_for_chunking(text: str, enc: tiktoken.Encoding) -> list[int]:
     return enc.encode(text, disallowed_special=())
 
@@ -357,7 +383,7 @@ def main() -> int:
         _delete_chunks_for_source(qdrant, collection, path.name)
         doc_meta = manifest_by_source_file.get(path.name, {})
 
-        raw = path.read_text(encoding="utf-8")
+        raw = _clean_parsed_text(path.read_text(encoding="utf-8"))
         chunks = chunk_text_by_tokens(
             raw,
             enc,
