@@ -28,6 +28,7 @@ A RAG-powered Q&A system over official **Bangko Sentral ng Pilipinas (BSP)** Mon
   - [Frontend](#frontend)
   - [Running ingestion](#running-ingestion)
 - [Design Decisions](#design-decisions)
+- [Observability](#observability)
 - [Evaluation](#evaluation)
 - [Deployment](#deployment)
 - [License](#license)
@@ -292,6 +293,9 @@ Ingestion is a one-time (or on-update) offline process that builds the vector st
 | **Tokenizer** | tiktoken (`cl100k_base`) | Token-accurate chunking |
 | **Config** | pydantic-settings | Type-safe env var management |
 | **Package manager** | uv | Fast, reproducible Python dependency management |
+| **Tracing** | OpenTelemetry SDK + FastAPIInstrumentor | Distributed tracing — auto-span per HTTP request, OTLP export |
+| **Logs** | Python `logging` + custom JSON formatter | Structured JSON logs with OTel trace/span ID correlation |
+| **Observability backend** | Grafana Cloud (Tempo + Loki) | Trace storage and log aggregation in production |
 | **Deployment** | Render | Backend API hosting |
 | **Testing** | pytest | Unit tests for RAG pipeline and ingestion logic |
 
@@ -311,6 +315,9 @@ bspQA/
 │           ├── pipeline.py    # run_rag_pipeline() orchestrator
 │           ├── retriever.py   # embed_query(), retrieve_chunks(), recency re-ranking
 │           └── generator.py   # _build_context(), _build_sources(), SYSTEM_PROMPT
+│       └── observability/
+│           ├── tracing.py     # OTel TracerProvider (OTLP HTTP or console fallback)
+│           └── logging.py     # Structured JSON logging with trace-context injection
 ├── frontend/
 │   └── app/
 │       ├── page.tsx           # Root page
@@ -358,6 +365,11 @@ OPENAI_API_KEY=sk-...
 QDRANT_CLUSTER_ENDPOINT=https://<your-cluster>.qdrant.io
 QDRANT_API_KEY=...
 QDRANT_COLLECTION_NAME=bsp_reports
+
+# Optional — OpenTelemetry (omit to log traces to stdout only)
+OTEL_SERVICE_NAME=bspqa
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-<region>.grafana.net/otlp
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic%20<base64-encoded-credentials>
 ```
 
 ### Backend
@@ -444,6 +456,53 @@ Chunk point IDs in Qdrant are deterministic `uuid5` hashes of `(source_file, chu
 ### Metadata filtering
 
 The query API supports optional `period_label_key` and `publication_date` / `publication_date_from` / `publication_date_to` filters, passed directly to Qdrant as pre-filter conditions evaluated before the ANN search. This lets the frontend (or API clients) scope queries to a specific report period without post-processing.
+
+---
+
+## Observability
+
+The backend ships structured logging and distributed tracing via OpenTelemetry. Both are configured at startup in `backend/app/observability/`.
+
+### Tracing
+
+`FastAPIInstrumentor` automatically creates an OTel span for every HTTP request. The `configure_tracing()` function registers a global `TracerProvider`:
+
+- **With `OTEL_EXPORTER_OTLP_ENDPOINT` set** — spans are exported via OTLP HTTP (compatible with Grafana Tempo, Jaeger, Honeycomb, etc.).
+- **Without the endpoint** — spans are printed to stdout via `ConsoleSpanExporter`, useful for local development.
+
+### Logging
+
+All log output is structured single-line JSON, emitted to stdout. Every log record includes:
+
+| Field | Description |
+|---|---|
+| `ts` | ISO 8601 timestamp |
+| `level` | Log level (`INFO`, `WARNING`, `ERROR`, …) |
+| `logger` | Logger name (module path) |
+| `trace_id` | OTel trace ID of the active span (empty if none) |
+| `span_id` | OTel span ID of the active span (empty if none) |
+| `msg` | Log message |
+| *(extra fields)* | Any keys passed via `extra={}` |
+
+The `trace_id` / `span_id` fields enable **trace-log correlation** in Grafana: clicking a trace in Tempo can pivot directly to the associated log lines in Loki.
+
+### Structured query events
+
+The `POST /query` handler emits three named events:
+
+| Event | When | Key fields |
+|---|---|---|
+| `query.received` | Request arrives | `query`, `top_k`, `score_threshold`, filter params, `model` |
+| `query.completed` | Pipeline succeeds | `answer_length`, `source_count`, `duration_ms` |
+| `query.failed` | Pipeline raises | `error_type`, `duration_ms`, `exc_info` |
+
+### Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `OTEL_SERVICE_NAME` | `bspqa` | Service name attached to all spans and logs |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | *(none)* | OTLP HTTP endpoint; omit to use console exporter |
+| `OTEL_EXPORTER_OTLP_HEADERS` | *(none)* | Auth headers for the OTLP endpoint (e.g. `Authorization=Basic%20…`) |
 
 ---
 
