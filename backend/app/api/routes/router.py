@@ -9,6 +9,12 @@ from backend.app.rag.retriever import DEFAULT_SCORE_THRESHOLD, DEFAULT_TOP_K
 router = APIRouter()
 
 
+@router.get("/health")
+def health() -> dict[str, str]:
+    """Lightweight liveness probe used to wake the server from idle."""
+    return {"status": "ok"}
+
+
 class QueryRequest(BaseModel):
     query: str
     top_k: int = Field(DEFAULT_TOP_K)
