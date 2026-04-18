@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     qdrant_collection_name: str
     allowed_origins: str = "http://localhost:3000"
 
+    # OpenTelemetry
+    otel_service_name: str = "bspqa"
+    otel_exporter_otlp_endpoint: str | None = None
+    otel_exporter_otlp_headers: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

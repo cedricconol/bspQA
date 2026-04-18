@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
+
+_logger = logging.getLogger(__name__)
 
 
 DEFAULT_GENERATION_MODEL = "gpt-4o-mini"
@@ -103,6 +106,8 @@ def _build_sources(hits: list[Any]) -> list[dict[str, Any]]:
         payload = hit.payload or {}
         source_file = payload.get("source_file", "unknown")
         meta = _MANIFEST_LOOKUP.get(str(source_file), {})
+        if not meta:
+            _logger.warning("manifest.miss", extra={"source_file": source_file})
         sources.append(
             {
                 "source_id": idx,

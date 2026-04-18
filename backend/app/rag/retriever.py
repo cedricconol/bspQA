@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import logging
+import time
 from datetime import date
 from typing import Any
+
+from opentelemetry import trace
 
 from ..config import get_settings
 
@@ -12,6 +16,9 @@ DEFAULT_TOP_K = 15
 DEFAULT_SCORE_THRESHOLD = 0.0
 RECENCY_CANDIDATE_MULTIPLIER = 3
 RECENCY_WEIGHT = 0.85
+
+_logger = logging.getLogger(__name__)
+_tracer = trace.get_tracer(__name__)
 
 
 def get_openai_client() -> Any:
@@ -60,8 +67,12 @@ def embed_query(client: Any, query: str) -> list[float]:
     Returns:
         A list of floats representing the query embedding.
     """
-    response = client.embeddings.create(model=EMBEDDING_MODEL, input=query)
-    return response.data[0].embedding
+    with _tracer.start_as_current_span("rag.embed_query") as span:
+        span.set_attribute("model", EMBEDDING_MODEL)
+        start = time.monotonic()
+        response = client.embeddings.create(model=EMBEDDING_MODEL, input=query)
+        span.set_attribute("duration_ms", round((time.monotonic() - start) * 1000, 1))
+        return response.data[0].embedding
 
 
 def _build_query_filter(
@@ -193,19 +204,54 @@ def retrieve_chunks(
     qdrant_client = qdrant_client or get_qdrant_client()
     collection_name = collection_name or get_qdrant_collection_name()
 
-    query_vector = embed_query(openai_client, query)
-    query_filter = _build_query_filter(
-        period_label_key=period_label_key,
-        publication_date=publication_date,
-        publication_date_from=publication_date_from,
-        publication_date_to=publication_date_to,
-    )
-    candidate_limit = max(top_k, top_k * RECENCY_CANDIDATE_MULTIPLIER)
-    points = qdrant_client.query_points(
-        collection_name=collection_name,
-        query=query_vector,
-        limit=candidate_limit,
-        score_threshold=score_threshold,
-        query_filter=query_filter,
-    ).points
-    return _recency_boosted_hits(points, top_k)
+    with _tracer.start_as_current_span("rag.retrieve_chunks") as span:
+        span.set_attribute("query", query)
+        span.set_attribute("top_k", top_k)
+
+        query_vector = embed_query(openai_client, query)  # child span: rag.embed_query
+        query_filter = _build_query_filter(
+            period_label_key=period_label_key,
+            publication_date=publication_date,
+            publication_date_from=publication_date_from,
+            publication_date_to=publication_date_to,
+        )
+        candidate_limit = max(top_k, top_k * RECENCY_CANDIDATE_MULTIPLIER)
+        filter_summary = {
+            "period_label_key": period_label_key,
+            "publication_date": publication_date,
+            "publication_date_from": publication_date_from,
+            "publication_date_to": publication_date_to,
+        }
+
+        with _tracer.start_as_current_span("qdrant.query_points") as qs:
+            qs.set_attribute("collection", collection_name)
+            qs.set_attribute("candidate_limit", candidate_limit)
+            qdrant_start = time.monotonic()
+            points = qdrant_client.query_points(
+                collection_name=collection_name,
+                query=query_vector,
+                limit=candidate_limit,
+                score_threshold=score_threshold,
+                query_filter=query_filter,
+            ).points
+            qdrant_duration_ms = round((time.monotonic() - qdrant_start) * 1000, 1)
+            qs.set_attribute("raw_hit_count", len(points))
+            qs.set_attribute("duration_ms", qdrant_duration_ms)
+
+        _logger.info(
+            "qdrant.query_done",
+            extra={
+                "raw_hit_count": len(points),
+                "candidate_limit": candidate_limit,
+                "filter": filter_summary,
+                "duration_ms": qdrant_duration_ms,
+            },
+        )
+
+        ranked = _recency_boosted_hits(points, top_k)
+        span.set_attribute("ranked_count", len(ranked))
+        _logger.debug(
+            "recency_rerank.done",
+            extra={"input_count": len(points), "output_count": len(ranked)},
+        )
+        return ranked
