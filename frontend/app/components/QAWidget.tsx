@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Source = {
   source_id: number;
@@ -58,6 +58,11 @@ export default function QAWidget() {
   const [result, setResult] = useState<QueryResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Wake up the Render backend on mount so cold-start happens in the background.
+  useEffect(() => {
+    fetch(`${API_URL}/health`).catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
