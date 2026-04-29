@@ -37,10 +37,10 @@ Each eval run produces a scored summary across a fixed set of questions, making 
 | **LLM-as-judge** | Using a language model (here, `gpt-4o-mini`) to score another model's output for quality attributes like faithfulness and relevance. Scores are elicited as structured JSON. |
 | **Faithfulness** | Whether every factual claim in the generated answer is directly supported by the retrieved source excerpts. A faithfulness of 1.0 means nothing was hallucinated or inferred beyond what the sources say. |
 | **Relevance** | Whether the generated answer actually addresses the question that was asked. A relevance of 1.0 means the answer is directly and completely on-topic. |
-| **Source recall** | How much overlap exists between the documents the pipeline retrieved and the documents expected to contain the answer. Computed as Jaccard similarity: `|retrieved ∩ expected| / |retrieved ∪ expected|`. A low score means the pipeline found related-sounding chunks from the wrong reports. |
+| **Source recall** | How much overlap exists between the documents the pipeline retrieved and the documents expected to contain the answer. Computed as Jaccard similarity: \|retrieved ∩ expected\| / \|retrieved ∪ expected\|. A low score means the pipeline found related-sounding chunks from the wrong reports. |
 | **Abstention accuracy** | For questions that are outside the scope of the corpus (adversarial cases), this measures whether the pipeline correctly responded with "I could not find a reliable answer" instead of hallucinating an answer. |
 | **No-answer rate** | The fraction of all questions where the pipeline returned the fallback message "I could not find a reliable answer in the available BSP reports." Includes both correct abstentions (adversarial questions) and incorrect abstentions (legitimate questions it failed to answer). |
-| **Jaccard similarity** | `|A ∩ B| / |A ∪ B|` — the ratio of shared items to total unique items between two sets. Used here to score source overlap: 1.0 is a perfect match, 0.0 is no overlap. |
+| **Jaccard similarity** | \|A ∩ B\| / \|A ∪ B\| — the ratio of shared items to total unique items between two sets. Used here to score source overlap: 1.0 is a perfect match, 0.0 is no overlap. |
 
 ---
 
