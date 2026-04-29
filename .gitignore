@@ -212,3 +212,6 @@ __marimo__/
 
 # ingestion data
 ingestion/data/
+
+# eval results
+results/

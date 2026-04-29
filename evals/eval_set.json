@@ -1,0 +1,137 @@
+{
+  "version": "1.0",
+  "description": "bspQA eval set — 15 BSP Monetary Policy Report Q&A cases",
+  "cases": [
+    {
+      "id": "eval-001",
+      "category": "single_doc",
+      "difficulty": "easy",
+      "question": "What was the BSP's baseline inflation forecast for 2022 as of Q1 2022?",
+      "expected_sources": ["FullReport_2022_1.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-002",
+      "category": "single_doc",
+      "difficulty": "easy",
+      "question": "What was the BSP's overnight reverse repurchase (RRP) policy rate at the time of the Q1 2022 Monetary Policy Report?",
+      "expected_sources": ["FullReport_2022_1.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-003",
+      "category": "single_doc",
+      "difficulty": "easy",
+      "question": "What was the BSP's official core inflation figure for January 2023?",
+      "expected_sources": ["FullReport_2023_1.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-004",
+      "category": "single_doc",
+      "difficulty": "medium",
+      "question": "What was the target RRP rate as of the February 2024 Monetary Policy Report, and had it changed since the prior Monetary Board meeting?",
+      "expected_sources": ["FullReport_February2024.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-005",
+      "category": "single_doc",
+      "difficulty": "medium",
+      "question": "What was the baseline inflation forecast for 2025 published in the December 2024 Monetary Policy Report?",
+      "expected_sources": ["FullReport_December2024.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-006",
+      "category": "multi_doc",
+      "difficulty": "medium",
+      "question": "How did the BSP's near-term inflation outlook change from Q1 2022 to Q1 2023?",
+      "expected_sources": ["FullReport_2022_1.txt", "FullReport_2023_1.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-007",
+      "category": "multi_doc",
+      "difficulty": "hard",
+      "question": "How did the BSP's overnight RRP policy rate evolve from 2022 to end-2024, and what were the major turning points?",
+      "expected_sources": [
+        "FullReport_2022_1.txt",
+        "FullReport_2022_4.txt",
+        "FullReport_2023_1.txt",
+        "FullReport_February2024.txt",
+        "FullReport_August2024.txt",
+        "FullReport_December2024.txt"
+      ],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-008",
+      "category": "multi_doc",
+      "difficulty": "hard",
+      "question": "What was the trend in the BSP's reserve requirement ratio (RRR) from 2022 to 2024, and what was the stated rationale for any changes?",
+      "expected_sources": [
+        "FullReport_2022_1.txt",
+        "FullReport_2023_1.txt",
+        "FullReport_December2024.txt"
+      ],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-009",
+      "category": "multi_doc",
+      "difficulty": "medium",
+      "question": "How did global oil price developments influence the BSP's inflation outlook differently in Q3 2022 versus Q4 2023?",
+      "expected_sources": ["FullReport_2022_3.txt", "FullReport_2023_4.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-010",
+      "category": "rationale",
+      "difficulty": "hard",
+      "question": "What were the primary factors that led the BSP's Monetary Board to raise the RRP rate by 50 basis points in November 2022?",
+      "expected_sources": ["FullReport_2022_4.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-011",
+      "category": "rationale",
+      "difficulty": "hard",
+      "question": "What economic and inflation conditions prompted the BSP to begin cutting its policy rate in August 2024?",
+      "expected_sources": ["FullReport_August2024.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-012",
+      "category": "rationale",
+      "difficulty": "medium",
+      "question": "What factors led the BSP to keep the policy rate unchanged at 6.50 percent through the first half of 2024?",
+      "expected_sources": ["FullReport_February2024.txt", "FullReport_May2024.txt"],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-013",
+      "category": "adversarial",
+      "difficulty": "hard",
+      "question": "What is the BSP's official stance on cryptocurrency regulation and Bitcoin as of 2024?",
+      "expected_sources": [],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-014",
+      "category": "adversarial",
+      "difficulty": "hard",
+      "question": "What were the key decisions made at the BSP Monetary Board meeting in March 2027?",
+      "expected_sources": [],
+      "reference_answer": null
+    },
+    {
+      "id": "eval-015",
+      "category": "adversarial",
+      "difficulty": "hard",
+      "question": "How do BSP monetary policy decisions compare with those of the European Central Bank over the period 2022 to 2024?",
+      "expected_sources": [],
+      "reference_answer": null
+    }
+  ]
+}
